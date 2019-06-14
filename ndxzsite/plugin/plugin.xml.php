@@ -8,6 +8,11 @@ class xml
 	var $output;
 	var $xml;
 	
+	public function __construct()
+	{
+		
+	}
+	
 	// /xml/
 	function rss()
 	{

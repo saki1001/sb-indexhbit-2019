@@ -8,11 +8,11 @@
 */
 
 body {
-	font-size: 16px;
+	font-size: 13px;
 	font-family: 'Helvetica Neue', Arial, Helvetica, Verdana, sans-serif;
 	background: #fff;
 	color: #000;
-	line-height: 1.4em;
+	line-height: 1.3em;
 	/* font-weight: 300; */
 }
 
@@ -30,14 +30,14 @@ code { font-family: monospace; }
 blockquote { padding-left: 9px; }
 
 /* headings */
-h1 { font-size: 16px; margin-bottom: 1em; font-weight: bold; }
-h2 { font-size: 16px; margin-bottom: 1em; font-weight: bold; }
-h3 { font-size: 16px; margin-bottom: 1em; }
-h4 { font-size: 16px; margin-bottom: 1em; }
+h1 { font-size: 13px; margin-bottom: 1em; font-weight: bold; }
+h2 { font-size: 13px; margin-bottom: 1em; font-weight: bold; }
+h3 { font-size: 13px; margin-bottom: 1em; }
+h4 { font-size: 13px; margin-bottom: 1em; }
 
 /* paragraph width */
 #index p { margin-bottom: 1em; }
-#exhibit p, code, blockquote { width: 600px; margin-bottom: 1em; /* line-height: 1.3em; */ }
+#exhibit p, code, blockquote { width: 450px; margin-bottom: 1em; /* line-height: 1.3em; */ }
 
 /* highlighter style - maybe you want to change colors? */
 .highlight { background: #ccff00; color: #000; }
@@ -62,7 +62,7 @@ h4 { font-size: 16px; margin-bottom: 1em; }
 /* styles for the section titles */
 #index ul.section span.section_title, 
 #index ul.section span.section_title a 
-{ color: black; }
+{ color: black; font-weight: normal; }
 
 /* active section title */
 #index span.active_section_title,
@@ -79,21 +79,20 @@ li.active a:visited, li a.active, li span.active, #index ul.section li.active a:
 #index ul li .password a { /* background: url(../img/locked.gif) right center no-repeat; padding-right: 18px; */ }
 
 /* the "new" indicator */
-#index ul li sup.new_exhibit { color: #0c0; font-weight: bold; text-transform: uppercase; font-size: 8px; vertical-align: top; }
-#index ul li sup.new_exhibit:before { color: #0c0; font-weight: bold; text-transform: uppercase; font-size: 8px; vertical-align: top; content: "New"; }
+#index ul li sup { color: #0c0; font-weight: bold; text-transform: uppercase; font-size: 8px; vertical-align: top; }
 /* end styling for index */
 
 /* links styles only for the #index region */
 #index a:link {  } 
-#index a:visited {  }
+#index a:visted {  }
 #index a:hover {  } 
 #index a:active {  } 
 
 /* links styles only for the #exhibit region */
 #exhibit a:link { text-decoration: underline; }
-#exhibit a:visited {  }
-#exhibit a:hover { text-decoration: none; } 
 #exhibit a:active {  } 
+#exhibit a:hover { text-decoration: none; } 
+#exhibit a:visted {  }
 
 /* links styles just for h1 title of site (your name/logo) */
 #index h1 a { font-weight: normal; text-decoration: none; color: #000; }
@@ -104,8 +103,3 @@ li.active a:visited, li a.active, li span.active, #index ul.section li.active a:
 /* this is where you pad them separately */
 #index .container {  }
 #exhibit .container {  }
-
-/* size and style of titles and captions (not mobile though) */
-.captioning { margin-top: 2px; }
-.title { font-size: 0.7em; font-style: italic; line-height: 1.2em; }
-.caption { font-size: 0.7em; font-style: italic; line-height: 1.2em; }

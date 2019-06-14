@@ -19,28 +19,37 @@ class indexhibit_style
 {
 	var $options = array();
 
-	function picker()
+	public function __construct()
+	{
+		
+	}
+
+	public function picker()
 	{
 		$OBJ =& get_instance();
 		
 		if (isset($OBJ)) 
 		{
-		$OBJ->page->exhibit['dyn_css'][] = "a:link { color: #" . $OBJ->hook->options['indexhibit_style']['bgcolor'] . "; }";
-		$OBJ->page->exhibit['dyn_css'][] = "a:visited { color: #" . $OBJ->hook->options['indexhibit_style']['bgcolor3'] . "; }";
-		$OBJ->page->exhibit['dyn_css'][] = "a:hover { color: #" . $OBJ->hook->options['indexhibit_style']['bgcolor2'] . "; }";
+			// we can't use these with mobile
+			if ($OBJ->vars->default['isMobile'] == false) 
+			{
+				$OBJ->page->exhibit['dyn_css'][] = "#index { width: " . $OBJ->hook->options['indexhibit_style']['menu_width'] . "px; }";
+				$OBJ->page->exhibit['dyn_css'][] = "#exhibit { margin-left: " . $OBJ->hook->options['indexhibit_style']['menu_width'] . "px; }";
+				
+				$OBJ->page->exhibit['dyn_css'][] = "#index, #exhibit { font-size: " . $OBJ->hook->options['indexhibit_style']['font_size'] . "px; }";
+				$OBJ->page->exhibit['dyn_css'][] = "#index, #exhibit { line-height: " . $OBJ->hook->options['indexhibit_style']['line_height'] . "px; }";
+
+				$OBJ->page->exhibit['dyn_css'][] = ".container { padding-top: " . $OBJ->hook->options['indexhibit_style']['padding_top'] . "px; }";
+				$OBJ->page->exhibit['dyn_css'][] = ".container { padding-left: " . $OBJ->hook->options['indexhibit_style']['padding_left'] . "px; }";
+			}
+			
+			$OBJ->page->exhibit['dyn_css'][] = "a:link { color: #" . $OBJ->hook->options['indexhibit_style']['bgcolor'] . "; }";
+			$OBJ->page->exhibit['dyn_css'][] = "a:visited { color: #" . $OBJ->hook->options['indexhibit_style']['bgcolor3'] . "; }";
+			$OBJ->page->exhibit['dyn_css'][] = "a:hover { color: #" . $OBJ->hook->options['indexhibit_style']['bgcolor2'] . "; }";
 		
+			$OBJ->page->exhibit['dyn_css'][] = "#index, #exhibit { color: #" . $OBJ->hook->options['indexhibit_style']['text_color'] . "; }";
 		
-		$OBJ->page->exhibit['dyn_css'][] = "#index { width: " . $OBJ->hook->options['indexhibit_style']['menu_width'] . "px; }";
-		$OBJ->page->exhibit['dyn_css'][] = "#exhibit { margin-left: " . $OBJ->hook->options['indexhibit_style']['menu_width'] . "px; }";
-		$OBJ->page->exhibit['dyn_css'][] = "#index, #exhibit { font-size: " . $OBJ->hook->options['indexhibit_style']['font_size'] . "px; }";
-		$OBJ->page->exhibit['dyn_css'][] = "#index, #exhibit { line-height: " . $OBJ->hook->options['indexhibit_style']['line_height'] . "px; }";
-		
-		$OBJ->page->exhibit['dyn_css'][] = ".container { padding-top: " . $OBJ->hook->options['indexhibit_style']['padding_top'] . "px; }";
-		$OBJ->page->exhibit['dyn_css'][] = ".container { padding-left: " . $OBJ->hook->options['indexhibit_style']['padding_left'] . "px; }";
-		
-		$OBJ->page->exhibit['dyn_css'][] = "#index, #exhibit { color: #" . $OBJ->hook->options['indexhibit_style']['text_color'] . "; }";
-		
-		$OBJ->page->exhibit['dyn_css'][] = "#index, #exhibit { font-family: " . $OBJ->hook->options['indexhibit_style']['fonts'] . "; }";
+			$OBJ->page->exhibit['dyn_css'][] = "#index, #exhibit { font-family: " . $OBJ->hook->options['indexhibit_style']['fonts'] . "; }";
 		
 		if (($OBJ->hook->options['indexhibit_style']['astyle'] == 'bold') || ($OBJ->hook->options['indexhibit_style']['astyle'] == 'italic'))
 		{
@@ -60,7 +69,7 @@ class indexhibit_style
 		}
 	}
 
-	function make_option()
+	public function make_option()
 	{
 		$OBJ =& get_instance();
 		
@@ -180,7 +189,7 @@ class indexhibit_style
 	}
 	
 	
-	function font_style($value, $title, $id)
+	public function font_style($value, $title, $id)
 	{
 		$OBJ =& get_instance();
 		
@@ -201,7 +210,7 @@ class indexhibit_style
 	}
 	
 	
-	function color_chooser($value='fff', $title, $id)
+	public function color_chooser($value='fff', $title, $id)
 	{
 		$OBJ =& get_instance();
 
@@ -233,7 +242,7 @@ class indexhibit_style
 		return $html;
 	}
 	
-	function fonts($value, $title, $id)
+	public function fonts($value, $title, $id)
 	{
 		$OBJ =& get_instance();
 		
@@ -258,7 +267,7 @@ class indexhibit_style
 		return $html;
 	}
 	
-	function slider_widget($value=9, $min=0, $max=200, $title, $id)
+	public function slider_widget($value=9, $min=0, $max=200, $title, $id)
 	{
 		$OBJ =& get_instance();
 
@@ -280,7 +289,7 @@ class indexhibit_style
 		return $html;
 	}
 	
-	function slider_line_height($size=9)
+	public function slider_line_height($size=9)
 	{
 		$OBJ =& get_instance();
 
@@ -303,7 +312,7 @@ class indexhibit_style
 	}
 	
 	
-	function font_size($size=9, $title, $var, $min, $max)
+	public function font_size($size=9, $title, $var, $min, $max)
 	{
 		$OBJ =& get_instance();
 
@@ -326,7 +335,7 @@ class indexhibit_style
 	}
 	
 	
-	function slider_font_size($size=9)
+	public function slider_font_size($size=9)
 	{
 		$OBJ =& get_instance();
 
@@ -348,7 +357,7 @@ class indexhibit_style
 		return $html;
 	}
 	
-	function slider_menu_width($width)
+	public function slider_menu_width($width)
 	{
 		$OBJ =& get_instance();
 

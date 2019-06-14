@@ -3,6 +3,11 @@
 class Taglist
 {
 	var $counter = 0;
+	
+	public function __construct()
+	{
+		
+	}
 
 	function load()
 	{

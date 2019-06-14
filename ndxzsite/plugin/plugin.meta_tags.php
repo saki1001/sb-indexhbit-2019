@@ -17,6 +17,11 @@ End
 
 class add_meta_keyword_description
 {
+	public function __construct()
+	{
+		
+	}
+	
 	function add()
 	{	
 		$OBJ =& get_instance();

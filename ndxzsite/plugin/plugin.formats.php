@@ -3,7 +3,7 @@
 
 function gimg($file, $width='', $height='')
 {
-	$OBJ =& get_instance();
+	$OBJ =& get_instance(); 
 
 	$size = @getimagesize(DIRNAME . GIMGS . '/' . $file);
 	
@@ -186,11 +186,15 @@ function youtube($file, $width='425', $height='344', $prv_img='')
 	//return "<div class='vimeo' style='width: {$width}px; height: {$height}px;'><iframe width='$width' height='$height' src='http://www.youtube.com/embed/$file' frameborder='0' allowfullscreen></iframe></div>";
 	
 	// our helper js files
-	$OBJ->lib_class('page');
-	$OBJ->page->add_lib_js('jwplayer.js', 21);
+	//$OBJ->lib_class('page');
+	//$OBJ->page->add_lib_js('jwplayer.js', 21);
 	
-	$no = rand(1, 99999999999);
+	$width = ($width == 0) ? '' : "width='$width'";
+	$height = ($height == 0) ? '' : "height='$height'";
+	
+	return "<iframe $width $height src='https://www.youtube.com/embed/$file'></iframe>";
 
+/*
 	$out = "<div id='mplayer-$no' class='youtube'>This text will be replaced</div>\n";
 
 	$out .= "<script type='text/javascript'>\n";
@@ -209,8 +213,9 @@ function youtube($file, $width='425', $height='344', $prv_img='')
 	$out .= "'controlbar.idlehide': true\n";
 	$out .= "});\n";
 	$out .= "</script>\n";
+	*/
 	
-	return $out;
+	//return $out;
 }
 
 
@@ -219,6 +224,7 @@ function vimeo($file, $width='425', $height='315')
 	if ($file == '') return;
 	
 	$file = str_replace('.vimeo', '', $file);
+	$file = str_replace('video/', '', $file);
 	
-	return "<div class='vimeo' style='width: {$width}px; height: {$height}px;'><iframe src='http://player.vimeo.com/video/$file' width='{$width}' height='{$height}' frameborder='0'></iframe></div>\n";
+	return "<div class='vimeo' style='width: {$width}px; height: {$height}px;'><iframe src='https://player.vimeo.com/video/$file' width='{$width}' height='{$height}' frameborder='0' webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe></div>\n";
 }

@@ -14,6 +14,11 @@ Objects: exhibits
 
 class Exhibit
 {
+	public function __construct()
+	{
+		
+	}
+	
 	function createExhibit()
 	{
 		$OBJ =& get_instance();
@@ -58,8 +63,8 @@ class Exhibit
 					$break = '';
 				}
 				
-				$a .= ($OBJ->vars->exhibit['titling'] == 1) ? "\n<span class='nothumb'><img src='" . BASEURL . GIMGS . "/" . $OBJ->vars->exhibit['id'] . "_$go[media_file]' alt='$title' title='$title' /><strong>$title</strong> $caption</span>$break\n" : 
-				"\n<span class='nothumb'><img src='" . BASEURL . GIMGS . "/" . $OBJ->vars->exhibit['id'] . "_$go[media_file]' alt='$title' title='$title' /></span>$break\n";
+				$a .= ($OBJ->vars->exhibit['titling'] == 1) ? "\n<span class='nothumb'><img src='" . BASEURL . GIMGS . "/" . $OBJ->vars->exhibit['id'] . "_$go[media_file]' /><strong>$title</strong> $caption</span>$break\n" : 
+				"\n<span class='nothumb'><img src='" . BASEURL . GIMGS . "/" . $OBJ->vars->exhibit['id'] . "_$go[media_file]' /></span>$break\n";
 		
 				$i++;
 			}

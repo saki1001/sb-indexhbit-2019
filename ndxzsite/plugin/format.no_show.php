@@ -22,6 +22,11 @@ Source: exhibit
 
 class Exhibit
 {
+	public function __construct()
+	{
+		
+	}
+	
 	function createExhibit()
 	{
 		$OBJ =& get_instance();

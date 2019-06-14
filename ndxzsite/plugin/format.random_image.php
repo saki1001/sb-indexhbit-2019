@@ -14,11 +14,10 @@ Objects: exhibits
 
 class Exhibit
 {
-	function Exhibit()
+	public function __construct()
 	{
 
 	}
-	
 	
 	function createExhibit()
 	{

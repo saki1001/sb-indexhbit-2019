@@ -2,22 +2,25 @@
 
 class Jxs_grow
 {
+	public function __construct()
+	{
+		
+	}
+	
 	function output()
 	{
-		sleep(1);
-	
 		$OBJ =& get_instance();
 		global $default;
 	
 		// we need this since we are using some of it's tools later down the chain
 		// doesn't hurt if we don't use them as well...
 		//$OBJ->lib_class('page', true, 'lib');
+
+		$media_id = (isset($_POST['i'])) ? (int) $_POST['i'] : 0;
 	
 		$rs = $OBJ->db->fetchRecord("SELECT * FROM ".PX."objects, ".PX."media 
-			WHERE media_id = '$_POST[i]' 
+			WHERE media_id = '$media_id' 
 			AND media_ref_id = id");	
-			
-		sleep(2);
 	
 		$caption = ($rs['media_title'] == '') ? '' : "<div class='title'>" . $rs['media_title'] . "</div>";
 		$caption .= ($rs['media_caption'] == '') ? '' : "<div class='caption'>" . $rs['media_caption'] . "</div>";

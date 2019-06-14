@@ -2,9 +2,24 @@ var active = 0;
 var zindex = 999;
 var disable_click = false;
 
+// this is the init function
+$(document).ready(function()
+{
+	// height of image plus height of title/caption
+	// reset the height of the
+	var tmp = $('#slideshow div#slide1000').height();
+	var txt = $('#slideshow div#slide1000 .captioning').height();
+
+	txt = (txt == null) ? 0 : txt;
+	$('#slideshow').height(tmp);
+});
+
 function next()
 {
-	var tmp = img.length;	
+	if (disable_click == true) return false;
+	disable_click = true;
+	
+	var tmp = img.length;
 	active = active + 1;
 	if ((active + 1) > tmp) active = 0;
 	getNode(img[active]);
@@ -12,10 +27,20 @@ function next()
 
 function previous()
 {
+	if (disable_click == true) return false;
+	disable_click = true;
+	
 	var tmp = img.length;
 	active = active - 1;
 	if ((active + 1) == 0) active = (tmp - 1);
 	getNode(img[active]);
+}
+
+function show(id, order)
+{
+	// we need to set the active position differently
+	active = order;
+	getNode(id);
 }
 
 function getNode(id) 
@@ -29,7 +54,7 @@ function getNode(id)
 		{
 			fillShow(html.output, html.height, html.mime);
 			disable_click = false;
-	//});
+			$('span#total em').html(active + 1);
 	}, 'json');
 		
 	return false;
@@ -38,47 +63,19 @@ function getNode(id)
 function loading()
 {
 	// remove previous and next slides
-	$('a#slide-next').remove();
 	$('a#slide-previous').remove();
-	
-	// get height of current #slideshow
-	var h = $('#slideshow').height();
-	var html = "<div id='loading'><span>" + (active + 1) + "/" + total + "</span></div>";
-
-	$('.picture').prepend(html);
-	
 	return;
 }
 
 
 function adjust_height(next)
 {
-	// only if text is below the image
-	if (placement == true) return false;
-
 	var adjust = 0;
-	var current_height = $('#slideshow').height();
+	var current_height = $('#slideshow div#slide' + zindex).height();
 	
-	if (current_height > next)
-	{
-		// larger
-		adjust = (current_height - next);
-		
-		// animate
-		$('#slideshow').animate({height: (current_height - adjust)}, 100);
-	}
-	else if (current_height < next)
-	{
-		// smaller
-		adjust = (next - current_height);
-		
-		// animate
-		$('#slideshow').animate({height: (current_height + adjust)}, 100);
-	}
-	else
-	{
-		// do nothing
-	}
+	$('#slideshow').height(next);
+
+	return;
 }
 
 function fillShow(content, next_height, mime)
@@ -90,24 +87,27 @@ function fillShow(content, next_height, mime)
 		
 		var adj_height = $('#slideshow div#slide' + zindex).height();
 		
-		// get height of #slideshow
-		adjust_height(adj_height);
+		$('#slideshow div#slide' + (zindex + 1)).fadeOut('1000').queue(function(next){$(this).remove();});
+		$('#slideshow div#slide' + zindex).fadeIn('1000');
+		
+		var tmp = $('#slideshow div#slide' + zindex + ' .captioning').height();
+		tmp = (tmp == null) ? 0 : tmp;
 
-		$('#slideshow div#slide' + (zindex + 1)).fadeOut('200').delay(3000).queue(function(next){$(this).remove();});
-		$('#slideshow div#slide' + zindex).fadeIn('200');
+		adjust_height(adj_height);
 	}
 	else
 	{
-		//$('#slideshow').replaceWith(content);
 		$('#slideshow').append(content);
 		
 		var adj_height = $('#slideshow div#slide' + zindex).height();
-		
-		// get height of #slideshow
-		adjust_height(adj_height);
 
 		$('#slideshow div#slide' + (zindex + 1)).remove();
-		$('#slideshow div#slide' + zindex).fadeIn(0);
+		$('#slideshow div#slide' + zindex).show();
+		
+		var tmp = $('#slideshow div#slide' + zindex + ' .captioning').height();
+		tmp = (tmp == null) ? 0 : tmp;
+		
+		adjust_height(adj_height);
 	}
 	
 	// count down
@@ -118,21 +118,12 @@ $.fn.preload = function()
 {
     this.each(function()
 	{
-        $('<img/>')[0].src = baseurl + '/files/gimgs/' + this;
+        $('<img/>')[0].src = baseurl + '/files/dimgs/' + this;
     });
 }
 
 $(document).keydown(function(e)
 {
-	if (e.keyCode == 37) { 
-		if (disable_click == true) return false;
-		disable_click = true;
-		previous();
-	}
-
-	if (e.keyCode == 39) { 
-		if (disable_click == true) return false;
-		disable_click = true;
-		next();
-	}
+	if (e.keyCode == 37) { previous(); }
+	if (e.keyCode == 39) { next(); }
 });

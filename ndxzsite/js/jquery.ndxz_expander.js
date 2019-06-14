@@ -29,13 +29,13 @@ $.fn.ndxzExpander = function(options)
 			//if (jQuery.inArray(this.id, exclude))
 			//{
 				
-				//alert( '#index ul#' + this.id + ' span.section_title' );
+				//alert( '#menu ul#' + this.id + ' span.section_title' );
 				// need to rewrite the expander links
-				$('#index ul#' + this.id + ' li a span.section_title').unwrap();
-				$('#index ul#' + this.id + ' li span.section_title').next().hide();
-				$('#index ul#' + this.id + ' li span.subsection_title').next().hide();
-				$('#index ul#' + this.id + ' span.section_title').bind('click', function(){ $.fn.ndxzExpander.expander(this); return false; });
-				$('#index ul#' + this.id + ' span.subsection_title').bind('click', function(){ $.fn.ndxzExpander.expander(this); return false; });
+				$('#menu ul#' + this.id + ' li a span.section_title').unwrap();
+				$('#menu ul#' + this.id + ' li span.section_title').next().hide();
+				$('#menu ul#' + this.id + ' li span.subsection_title').next().hide();
+				$('#menu ul#' + this.id + ' span.section_title').bind('click', function(){ $.fn.ndxzExpander.expander(this); return false; });
+				$('#menu ul#' + this.id + ' span.subsection_title').bind('click', function(){ $.fn.ndxzExpander.expander(this); return false; });
 			//}
 		});
 
@@ -51,7 +51,7 @@ $.fn.ndxzExpander = function(options)
 	
 	$.fn.ndxzExpander.active = function()
 	{
-		//$('#index ul.active_section li a span.active').nextAll('ul').toggle(options.speed);
+		//$('#menu ul.active_section li a span.active').nextAll('ul').toggle(options.speed);
 		
 		// open up the pathway
 		// works with active pages - but not section tops...
@@ -103,7 +103,7 @@ $.fn.ndxzExpander = function(options)
 			}
 			else
 			{
-				$('#index ul li span.section_title').next().hide(options.speed);
+				$('#menu ul li span.section_title').next().hide(options.speed);
 				
 				// register the new active part
 				options.active = obj.id;

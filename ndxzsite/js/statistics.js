@@ -35,7 +35,7 @@ function do_statistics()
 	var path = window.location.pathname;
 
 	// get the grow content via ajax
-	$.post(baseurl + '/ndxzsite/plugin/ajax.php', { jxs : 'statistics', last_visit : lasted, url : path, referrer : refer }, 
+	$.post('/ndxzsite/plugin/ajax.php', { jxs : 'statistics', last_visit : lasted, url : path, referrer : refer }, 
 		function(html) 
 		{
 			//alert(html);

@@ -8,7 +8,7 @@ Version: 1.2
 Author: Indexhibit
 Author URI: http://indexhibit.org/
 Options Builder: default_settings
-Params: format,images,custom('textplacement'),custom('nav_type'),custom('navigate'),custom('thumb_height')
+Params: format,custom('textplacement'),custom('nav_type'),custom('navigate'),custom('height'),custom('thumb_height')
 Options Builder: default_settings
 Source: exhibit
 Objects: exhibits
@@ -37,11 +37,12 @@ class Exhibit
 	var $navigate;
 	var $nav_type;
 	var $thumb_height;
+	var $height;
 	
 	///////////////
 	var $x;
 
-	function Exhibit()
+	public function __construct()
 	{
 		$OBJ =& get_instance();
 
@@ -59,13 +60,19 @@ class Exhibit
 			
 		$this->thumb_height = (isset($OBJ->abstracts->abstract['thumb_height'])) ? 
 			$OBJ->abstracts->abstract['thumb_height'] : 75;
+			
+		$this->height = (isset($OBJ->abstracts->abstract['height'])) ? 
+				$OBJ->abstracts->abstract['height'] : 575;
 	}
 	
-	
-	function createExhibit()
+	public function createExhibit()
 	{
 		$OBJ =& get_instance();
 		global $uploads, $default;
+		
+		// we need to customize the allowed formats here
+		// adding txt for customization
+		$OBJ->vars->media = array_merge($default['images'], $default['media'], $default['services'], array('txt'));
 		
 		// exhibit only source
 		$this->source = $default['filesource'][0];
@@ -106,6 +113,7 @@ class Exhibit
 		// we need to see if there are any videos and set the js
 		global $uploads; $preload = array();
 		
+		// this version of slideshow only works with dynamic images
 		foreach ($OBJ->vars->images as $tests)
 		{
 			foreach ($tests as $test)
@@ -118,13 +126,12 @@ class Exhibit
 				// let's make an array of images for preloading
 				if (in_array($test['media_mime'], array_merge($default['images'])))
 				{
-					$preload[] = $test['media_ref_id'] . '_' . $test['media_file'];
+					$name = 'rsz_h' . $this->height . '_' . $OBJ->vars->exhibit['id'] . '_' . $test['media_id'] . '.' . $test['media_mime'];
+					//$preload[] = $test['media_ref_id'] . '_' . $test['media_file'];
+					$preload[] = $name;
 				}
 			}
 		}
-		
-		// preload array
-		$OBJ->page->exhibit['dyn_js'][] = "$(function() { $(['" . implode("', '", $preload) . "']).preload(); });";
 		
 		// first image array
 		$image = $OBJ->vars->images[0][0];
@@ -132,12 +139,28 @@ class Exhibit
 		// if it's an image
 		if (in_array($image['media_mime'], $default['images']))
 		{
-			$size = getimagesize(DIRNAME . '/files/gimgs/' . $image['media_ref_id'] . '_' . $image['media_file']);
+			$size = getimagesize(DIRNAME . '/files/gimgs/' . $image['media_file']);
 		
 			$a = "<div id='slideshow-wrapper'>\n";
 			$a .= "<div id='slideshow' style='position: relative;'>\n";
-			//$a = "<div id='slideshow' style='position: relative;'>\n";
-			$a .= '<div id="slide1000" class="picture" style="z-index: 1000; position: absolute;"><a href="#" onclick="next(); return false;" alt=""><img src="' . $image['media_path'] . '" width="' . $size[0] . '" height="' . $size[1] . '" /></a>';
+			$a .= '<div id="slide1000" class="picture" style="z-index: 1000; position: absolute;">';
+			$a .= '<a href="#" onclick="next(); return false;" alt="">';
+			
+			// we need to resize this image based on $this->height
+			// new dimensions 
+			$new_height = $this->height;
+			$new_width = round(($size[0] * $new_height) / $size[1]);
+
+			// force width
+			$R = load_class('resize', true, 'lib');
+
+			$name = 'rsz_h' . $new_height . '_' . $OBJ->vars->exhibit['id'] . '_' . $image['media_id'] . '.' . $image['media_mime'];
+
+			// we're going to resize and output
+			$R->reformat($new_width, $new_height, $size, $image, $OBJ->vars->exhibit['id'], $name, $image['media_dir']);
+	
+			$a .= '<img src="' . BASEURL . '/files/dimgs/' . $name . '" width="' . $new_width . '" height="' . $this->height . '" />';		
+			$a .= '</a>';
 		
 			if (($image['media_title'] == '') && ($image['media_caption'] == ''))
 			{
@@ -146,8 +169,13 @@ class Exhibit
 			else
 			{
 				$a .= "<div class='captioning'>\n";
-				if ($image['media_title'] != '') $a .= "<div class='title'>$image[media_title]</div>\n";
-				if ($image['media_caption'] != '') $a .= "<div class='caption'>$image[media_caption]</div>\n";
+
+				$a .= (($image['media_title'] !=  '') && ($image['media_caption'] !=  '')) ? "<p>" : '';
+				$a .= ($image['media_title'] !=  '') ? $image['media_title'] : '';
+				$a .= ($image['media_title'] !=  '') ? " " : '';
+				$a .= ($image['media_caption'] !=  '') ? strip_tags($image['media_caption'], "a,i,b") : '';
+				$a .= (($image['media_title'] !=  '') && ($image['media_caption'] !=  '')) ? "</p>" : '';
+
 				$a .= "</div>\n";
 			}
 			
@@ -156,14 +184,22 @@ class Exhibit
 		
 			$a .= "</div>\n";
 		}
-		else // not an image
+		else if (in_array($image['media_mime'], array_merge($default['media'], $default['services']))) // it's a video
 		{
 			$mime = $image['media_mime'];
 			
 			$a = "<div id='slideshow-wrapper'>\n";
-			$a .= "<div id='slideshow' style='position: relative; height: " . $image['media_y'] . "px;'>\n";
-			$a .= '<div  id="slide1000" class="picture" style="z-index: 1000; position: absolute; height: ' . $image['media_y'] . 'px;">';
-			$a .= $mime($image['media_file'], $image['media_x'], $image['media_y'], $image['media_thumb']);
+			$a .= "<div id='slideshow' style='position: relative;'>\n";
+			$a .= '<div  id="slide1000" class="picture videoslide" style="z-index: 1000; position: absolute;">';		
+			$a .= "<a href='#' onclick=\"next(); return false;\"><span class='nextlink'></span></a>";
+			
+			// we need to resize this image based on $this->height
+			// new dimensions 
+			$new_height = $this->height;
+			$new_width = round(($image['media_x'] * $new_height) / $image['media_y']);
+			
+			$a .= $mime($image['media_file'], $new_width, $new_height, $image['media_thumb']);
+			
 			$a .= '</div>';
 			
 			//$a .= '<a href="#" onclick="next(); return false;" alt="">';
@@ -175,11 +211,37 @@ class Exhibit
 			else
 			{
 				$a .= "<div class='captioning'>\n";
-				if ($image['media_title'] != '') $a .= "<div class='title'>$image[media_title]</div>\n";
-				if ($image['media_caption'] != '') $a .= "<div class='caption'>$image[media_caption]</div>\n";
+
+				$a .= (($image['media_title'] !=  '') && ($image['media_caption'] !=  '')) ? "<p>" : '';
+				$a .= ($image['media_title'] !=  '') ? $image['media_title'] : '';
+				$a .= ($image['media_title'] !=  '') ? " " : '';
+				$a .= ($image['media_caption'] !=  '') ? strip_tags($image['media_caption'], "a,i,b") : '';
+				$a .= (($image['media_title'] !=  '') && ($image['media_caption'] !=  '')) ? "</p>" : '';
+
 				$a .= "</div>\n";
 			}
 			
+			$a .= '</div>';
+			$a .= "</div>\n";
+		}
+		else // it's text only
+		{
+			// only if media_mime = txt
+			$a = "<div id='slideshow-wrapper'>\n";
+			$a .= "<div id='slideshow' style='position: relative; height: " . $this->height . "px;'>\n";
+			$a .= '<div  id="slide1000" class="picture" style="z-index: 1000; position: absolute; height: ' . $this->height . 'px;">';
+			
+			// we need to get the text from the file
+			$handle = fopen(DIRNAME . '/files/' . $image['media_file'], 'r');
+			$text = fread($handle, 1000000);
+			fclose($handle);
+			
+			// new dimensions 
+			$a .= "<div id='slideshow-text'>\n";
+			$a .= $text;
+			$a .= "</div>\n";
+			
+			$a .= '</div>';
 			$a .= "</div>\n";
 		}
 		
@@ -203,82 +265,88 @@ class Exhibit
 			$nav = '';
 		}
 		
-		$i = 0;
-		
-		// what if we used thumbnails here - no nav? or, a different nav?
-		// what about thumbnail interface?
-		foreach ($OBJ->vars->images as $thumbs)
+			
+		// a bit messy - organize this better
+		if ($this->nav_type == 1)
 		{
-			foreach ($thumbs as $key => $thumb)
+			// already set previously in script
+			//$images = $nav . $a;
+		}
+		elseif ($this->nav_type == 2)
+		{
+			// make thumbnails here
+			$i = 0;
+
+			// what if we used thumbnails here - no nav? or, a different nav?
+			// what about thumbnail interface?
+			foreach ($OBJ->vars->images as $thumbs)
 			{
-				// if it's an image
-				if (in_array($thumb['media_mime'], $default['images']))
+				foreach ($thumbs as $key => $thumb)
 				{
-					$source = ($thumb['media_thumb_source'] == '') ? $thumb['media_file'] : $thumb['media_thumb_source'];
+					// if it's an image
+					if (in_array($thumb['media_mime'], $default['images']))
+					{
+						$source = ($thumb['media_thumb_source'] == '') ? $thumb['media_file'] : $thumb['media_thumb_source'];
 
-					// here we need to regenerate the thumbnail
-					$size = getimagesize(DIRNAME . "/files/gimgs/" . $source);
+						// here we need to regenerate the thumbnail
+						$size = getimagesize(DIRNAME . "/files/gimgs/" . $source);
 
-					// new dimensions based on the height
-					// but we are still recalculating a new width
-					$new_width = round(($size[0] * $this->thumb_height) / $size[1]);
+						// new dimensions based on the height
+						// but we are still recalculating a new width
+						$new_width = round(($size[0] * $this->thumb_height) / $size[1]);
 
-					$name = 'rsz_h' . $this->thumb_height . '_' . $OBJ->vars->exhibit['id'] . '_' . $thumb['media_id'] . '.jpg';
+						$name = 'rsz_h' . $this->thumb_height . '_' . $OBJ->vars->exhibit['id'] . '_' . $thumb['media_id'] . '.' . $thumb['media_mime'];
 
-					$R = load_class('resize', true, 'lib');
+						$R = load_class('resize', true, 'lib');
 
-					// we're going to resize and output
-					$R->reformat($new_width, $this->thumb_height, $size, $thumb, $OBJ->vars->exhibit['id'], $name, $thumb['media_dir']);
-	
-					$thumbnails .= "<a href='#' style='' onclick=\"show(" . $thumb['media_id'] . ", $i); return false;\"><img src='" . BASEURL . "/files/dimgs/$name' /></a> \n";
-					
-					$i++;
-				}
-				else // a movie or other displayable formats
-				{
-					$source = $thumb['media_thumb_source'];
+						// we're going to resize and output
+						$R->reformat($new_width, $this->thumb_height, $size, $thumb, $OBJ->vars->exhibit['id'], $name, $thumb['media_dir']);
 
-					// here we need to regenerate the thumbnail
-					$size = getimagesize(DIRNAME . "/files/gimgs/" . $source);
+						$thumbnails .= "<a href='#' style='' onclick=\"show(" . $thumb['media_id'] . ", $i); return false;\"><img src='" . BASEURL . "/files/dimgs/$name' /></a> \n";
 
-					// new dimensions based on the height
-					// but we are still recalculating a new width
-					$new_width = round(($size[0] * $this->thumb_height) / $size[1]);
+						$i++;
+					}
+					else // a movie or other displayable formats
+					{
+						$source = $thumb['media_thumb_source'];
 
-					$name = 'rsz_h' . $this->thumb_height . '_' . $OBJ->vars->exhibit['id'] . '_' . $thumb['media_id'] . '.jpg';
+						// here we need to regenerate the thumbnail
+						$size = getimagesize(DIRNAME . "/files/gimgs/" . $source);
 
-					$R = load_class('resize', true, 'lib');
+						// new dimensions based on the height
+						// but we are still recalculating a new width
+						$new_width = round(($size[0] * $this->thumb_height) / $size[1]);
 
-					// we're going to resize and output
-					$R->reformat($new_width, $this->thumb_height, $size, $thumb, $OBJ->vars->exhibit['id'], $name, $thumb['media_dir']);
-	
-					$thumbnails .= "<a href='#' style='' onclick=\"show(" . $thumb['media_id'] . ", $i); return false;\"><img src='" . BASEURL . "/files/dimgs/$name' /></a> \n";
-					
-					$i++;
+						$name = 'rsz_h' . $this->thumb_height . '_' . $OBJ->vars->exhibit['id'] . '_' . $thumb['media_id'] . '.' . $thumb['media_mime'];
+
+						$R = load_class('resize', true, 'lib');
+
+						// we're going to resize and output
+						$R->reformat($new_width, $this->thumb_height, $size, $thumb, $OBJ->vars->exhibit['id'], $name, $thumb['media_dir']);
+
+						$thumbnails .= "<a href='#' style='' onclick=\"show(" . $thumb['media_id'] . ", $i); return false;\"><img src='" . BASEURL . "/files/dimgs/$name' /></a> \n";
+
+						$i++;
+					}
 				}
 			}
 			
-			// a bit messy - organize this better
-			if ($this->nav_type == 1)
-			{
-				// already set previously in script
-				//$images = $nav . $a;
-			}
-			elseif ($this->nav_type == 2)
-			{
-				// we need to determine above or below for the css
-				$balance = ($this->navigate == 0) ? 'thumbnails-above' : 'thumbnails-below';
-				$nav = ($thumbnails == '') ? '' : "<div id='thumbnails' class='$balance'>$thumbnails</div>\n\n";
-				//$images = $a . $nav;
-			}
-			else
-			{
-				$nav = '';
-				//$images = $a;
-			}
-
+			// we need to determine above or below for the css
+			$balance = ($this->navigate == 0) ? 'thumbnails-above' : 'thumbnails-below';
+			$nav = ($thumbnails == '') ? '' : "<div id='thumbnails' class='$balance'>$thumbnails</div>\n\n";
+			//$images = $a . $nav;
 		}
-		// end thumbnails setup
+		else
+		{
+			$nav = '';
+			//$images = $a;
+		}
+		
+		// preload array
+		if (count($preload) >= 1)
+		{
+			$OBJ->page->exhibit['dyn_js'][] = "$(function() { $(['" . implode("', '", $preload) . "']).preload(); });";
+		}
 		
 		// composition space - text placement
 		// 0 = top
@@ -309,7 +377,7 @@ class Exhibit
 	}
 
 
-	function defaultCSS()
+	public function defaultCSS()
 	{
 		$OBJ =& get_instance();
 
@@ -318,13 +386,13 @@ class Exhibit
 	
 	
 	///////////////// SETTINGS
-	function default_settings()
+	public function default_settings()
 	{
 		$OBJ =& get_instance();
 
 		$effect = (isset($this->settings['effect'])) ? $this->settings['effect'] : 1;
 	
-		$html .= "<label>transition effect</label>\n";
+		$html = "<label>transition effect</label>\n";
 		$html .= "<p><select name='option[effect]'>\n";
 		$html .= "<option value='1'" . $this->selected($effect, 1) . ">fade</option>\n";
 		$html .= "<option value='0'" . $this->selected($effect, 0) . ">none</option>\n";
@@ -333,12 +401,12 @@ class Exhibit
 		return $html;
 	}
 
-	function selected($var='', $check='')
+	public function selected($var='', $check='')
 	{
 		return ($var == $check) ? " selected='selected'" : '';
 	}
 	
-	function custom_option_navigate()
+	public function custom_option_navigate()
 	{
 		$OBJ =& get_instance();
 
@@ -370,7 +438,7 @@ class Exhibit
 		return;
 	}
 	
-	function custom_option_textplacement()
+	public function custom_option_textplacement()
 	{
 		$OBJ =& get_instance();
 
@@ -402,7 +470,7 @@ class Exhibit
 		return;
 	}
 	
-	function custom_option_nav_type()
+	public function custom_option_nav_type()
 	{
 		$OBJ =& get_instance();
 
@@ -434,7 +502,39 @@ class Exhibit
 		return;
 	}
 	
-	function custom_option_thumb_height()
+	
+	public function custom_option_height()
+	{
+		$OBJ =& get_instance();
+
+		$height = (isset($OBJ->abstracts->abstract['height'])) ?
+			(int)$OBJ->abstracts->abstract['height'] : 575;
+			
+		$set = (isset($OBJ->abstracts->abstract['height'])) ? 1 : 0;
+		
+		$OBJ->template->add_css('themes/ui-lightness/jquery.ui.all.css');
+		$OBJ->template->add_js('ui/jquery.ui.core.js');
+		$OBJ->template->add_js('ui/jquery.ui.widget.js');
+		$OBJ->template->add_js('ui/jquery.ui.mouse.js');
+		$OBJ->template->add_js('ui/jquery.ui.slider.js');
+	
+		$html = "<div style='padding-right: 15px;'><label id='height_value'>uniform height <span>$height</span></label>\n";
+		$html .= "<input type='hidden' id='height' name='option[height]' value='$height' />\n";
+		$html .= "<div id='slider' style='margin: 10px 0;'></div></div>\n\n";
+
+		$OBJ->template->onready[] = "$('#slider').slider({ value: $height, min: 320, max: 1000, step: 10,  
+	stop: function(event, ui) { $('#height').val(ui.value); update_abstract(ui.value, 'height', $set); },
+	slide: function(event, ui) { $('label#height_value span').html(ui.value); }
+	});";
+		
+		// output column
+		$OBJ->options->custom_output[2][1] = $html;
+	
+		return;
+	}
+	
+	
+	public function custom_option_thumb_height()
 	{
 		$OBJ =& get_instance();
 
@@ -454,19 +554,19 @@ class Exhibit
 	
 		$html = "<div style='padding-right: 15px;'><label id='thumb_height_value'>thumbnail_height <span>$height</span></label>\n";
 		$html .= "<input type='hidden' id='thumb_height' name='option[thumb_height]' value='$height' />\n";
-		$html .= "<div id='slider' style='margin: 10px 0;'></div></div>\n\n";
+		$html .= "<div id='slider2' style='margin: 10px 0;'></div></div>\n\n";
 		
 		////////////////////////////////////
 		// $set - DOES NOT WORK!
 		////////////////////////////////////
 
-		$OBJ->template->onready[] = "$('#slider').slider({ value: $height, min: 15, max: 200, step: 5,  
+		$OBJ->template->onready[] = "$('#slider2').slider({ value: $height, min: 15, max: 200, step: 5,  
 	stop: function(event, ui) { $('#thumb_height').val(ui.value); update_abstract(ui.value, 'thumb_height', $set); },
 	slide: function(event, ui) { $('label#thumb_height_value span').html(ui.value); }
 	});";
 		
 		// output column
-		$OBJ->options->custom_output[2][1] = $html;
+		$OBJ->options->custom_output[2][2] = $html;
 	
 		return;
 	}

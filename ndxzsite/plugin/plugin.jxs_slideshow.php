@@ -1,22 +1,23 @@
-<?php
-
+<?php if (!defined('SITE')) exit('No direct script access allowed');
 
 class Jxs_slideshow
-{
-	function output()
+{	
+	public function output()
 	{
 		echo json_encode($this->output); 
 		exit;
 	}
 	
-	function Jxs_slideshow()
+	public function __construct()
 	{
-
 		$OBJ =& get_instance();
 		global $default;
+
+		$media_id = (isset($_POST['i'])) ? (int) $_POST['i'] : 0;
+		$posted_z = (isset($_POST['z'])) ? (int) $_POST['z'] : 0;
 	
 		$rs = $OBJ->db->fetchRecord("SELECT * FROM ".PX."objects, ".PX."media 
-			WHERE media_id = '$_POST[i]' 
+			WHERE media_id = '$media_id' 
 			AND media_ref_id = id");
 	
 		$caption = ($rs['media_title'] == '') ? '' : "<div class='title'>" . $rs['media_title'] . "</div>";
@@ -32,56 +33,74 @@ class Jxs_slideshow
 			// if it's a movie else it's a service
 			$file = (in_array($rs['media_mime'], $default['media'])) ? DIRNAME . $path . $rs['media_file'] : $rs['media_file'];
 			$mime = $rs['media_mime'];
+			
+			$OBJ->vars->exhibit['id'] = $rs['id'];
+			$OBJ->vars->exhibit['object'] = $rs['object'];
+			$OBJ->abstracts->front_abstracts();
+			
+			// how do we get abstracts here?
+			$height = (isset($OBJ->abstracts->abstract['height'])) ? $OBJ->abstracts->abstract['height'] : 0;
 	
 			// height and width of thumbnail
 			$size[0] = $rs['media_x'];
 			$size[1] = $rs['media_y'];
+			
+			// new dimensions 
+			$new_height = $height;
+			$new_width = round(($size[0] * $height) / $size[1]);
 		
 			$right_margin = (isset($OBJ->hook->options['slideshow_settings']['margin'])) ? 
 				$OBJ->hook->options['slideshow_settings']['margin'] : 25;
 			$bottom_margin = (isset($OBJ->hook->options['slideshow_settings']['bottom_margin'])) ? 
 				$OBJ->hook->options['slideshow_settings']['bottom_margin'] : 25;
 
-			$temp_x = $rs['media_x'] + $right_margin;
-			$temp_y = $rs['media_y'] + $bottom_margin;
+			$temp_x = $new_width + $right_margin;
+			$temp_y = $new_height + $bottom_margin;
 		
 			// we need the base index.php file for this one
 			require_once(DIRNAME . '/ndxzsite/plugin/index.php');
 			
 			$file = ($rs['media_dir'] != '') ? $rs['media_dir'].'/'.$rs['media_file'] : $rs['media_file'];
 
-			//$a = "<div id='slideshow'>\n";
-			//$a = '<div id="slideshow' . $_POST['z'] . '" class="picture" style="z-index: ' . $_POST['z'] . '; position: absolute; height: ' . $rs['media_y'] . 'px; display: none;">';
-			
-			// what is 40% of width
-			$click_width = round($size[0] * .3);
-			
-			// make overlays for previous and next.
-			//$a = "<a id='slide-previous' style='display: block; position: absolute; z-index: 1005; top: 45px; left: 0; bottom: 45px; width: {$click_width}px; text-indent: -9999px; background: url(" . $OBJ->vars->exhibit['baseurl'] . "/ndxzsite/img/previous.gif) no-repeat left center;' href='#' onclick=\"previous(); return false;\">previous</a>";
+			$click_width = $size[0];
 			
 			$bottom_setting = ($size[1] - 90);
 			
-			$a = "<a id='slide-previous' style='width: {$click_width}px; height: {$bottom_setting}px;' href='#' onclick=\"previous(); return false;\">previous</a>";
-			
 			$adjuster = ($size[0] - $click_width);
-			
-			$a .= "<a id='slide-next' style='left: {$adjuster}px; width: {$click_width}px; height: {$bottom_setting}px;' href='#' onclick=\"next(); return false;\">next</a>";
 			
 			// odd vimeo bug
 			$mime_display = ($rs['media_mime'] == 'vimeo') ? '' : ' display: none;';
 			
-			$a .= '<div id="slide' . $_POST['z'] . '" class="picture" style="z-index: ' . $_POST['z'] . '; position: absolute;' . $mime_display . '">';
-			//$a .= '<div class="picture">';
-			$a .= $mime($file, $rs['media_x'], $rs['media_y'], $rs['media_thumb']);
-			//$a .= '</div>';
-				
+			// autoplay is true from this format
+			$OBJ->vars->media['autoplay'] = true;
+			
+			$a = '<div id="slide' . $posted_z . '" class="picture videoslide" style="z-index: ' . $posted_z . '; position: absolute;' . $mime_display . '">';
+			
+			$a .= "<a href='#' onclick=\"next(); return false;\"><span class='nextlink'></span></a>";
+			
+			$a .= $mime($file, $new_width, $new_height, $rs['media_thumb']);
 
-			if (($rs['media_title'] != '') && ($rs['media_caption'] != ''))
+			if (($rs['media_title'] == '') && ($rs['media_caption'] == ''))
+			{
+				// do nothing
+			}
+			else
 			{
 				$a .= "<div class='captioning'>\n";
-				if ($rs['media_title'] != '') $a .= "<div class='title'>$rs[media_title]</div>\n";
-				if ($rs['media_caption'] != '') $a .= "<div class='caption'>$rs[media_caption]</div>\n";
+
+				$a .= (($rs['media_title'] !=  '') && ($rs['media_caption'] !=  '')) ? "<p>" : '';
+				$a .= ($rs['media_title'] !=  '') ? $rs['media_title'] : '';
+				$a .= ($rs['media_title'] !=  '') ? " " : '';
+				$a .= ($rs['media_caption'] !=  '') ? strip_tags($rs['media_caption'], "a,i,b") : '';
+				$a .= (($rs['media_title'] !=  '') && ($rs['media_caption'] !=  '')) ? "</p>" : '';
+
 				$a .= "</div>\n";
+				
+				
+				//$a .= "<div class='captioning'>\n";
+				//if ($rs['media_title'] != '') $a .= "<div class='title'>$rs[media_title]</div>\n";
+				//if ($rs['media_caption'] != '') $a .= "<div class='caption'>$rs[media_caption]</div>\n";
+				//$a .= "</div>\n";
 			}
 
 			$a .= "</div>\n\n";
@@ -90,58 +109,107 @@ class Jxs_slideshow
 			$this->output['output'] = $a;
 			return;
 		}
-		else
+		else if (in_array($rs['media_mime'], $default['images'])) // it's an image
 		{
-			$file = DIRNAME . '/files/gimgs/' . $rs['id'] . '_' . $rs['media_file'];
+			$file = DIRNAME . '/files/gimgs/' . $rs['media_file'];
 	
 			// height and width of thumbnail
 			$size = getimagesize($file);
+			
+			$OBJ->vars->exhibit['id'] = $rs['id'];
+			$OBJ->vars->exhibit['object'] = $rs['object'];
+			$OBJ->abstracts->front_abstracts();
+			
+			// how do we get abstracts here?
+			$height = (isset($OBJ->abstracts->abstract['height'])) ? $OBJ->abstracts->abstract['height'] : 575;
+			
+			// new dimensions 
+			$new_height = $height;
+			$new_width = round(($size[0] * $new_height) / $size[1]);
+			
+			//echo $height; exit;
+			//print_r($size);
+			//echo $new_height . ' / ' . $new_width; exit;
 
-			//$size = getimagesize(DIRNAME . '/files/gimgs/' . $image['media_ref_id'] . '_' . $image['media_file']);
+			$click_width = $new_width;
 			
-			// what is 40% of width
-			$click_width = round($size[0] * .3);
+			$bottom_setting = ($new_height - 90);
 			
-			// make overlays for previous and next.
-			//$a = "<a id='slide-previous' style='display: block; position: absolute; z-index: 1005; top: 45px; left: 0; bottom: 45px; width: {$click_width}px; text-indent: -9999px; background: url(" . $OBJ->vars->exhibit['baseurl'] . "/ndxzsite/img/previous.gif) no-repeat left center;' href='#' onclick=\"previous(); return false;\">previous</a>";
+			$adjuster = ($new_width - $click_width);
 			
-			$bottom_setting = ($size[1] - 90);
+			$a = "<div id='slide" . $posted_z . "' class='picture' style='z-index: " . $posted_z . "; position: absolute; display: none;'>";
 			
-			$a = "<a id='slide-previous' style='width: {$click_width}px; height: {$bottom_setting}px;' href='#' onclick=\"previous(); return false;\">previous</a>";
+			$a .= "<a style='width: {$click_width}px; height: {$bottom_setting}px;' href='#' onclick=\"next(); return false;\">";
 			
-			$adjuster = ($size[0] - $click_width);
+			$name = 'rsz_h' . $new_height . '_' . $rs['id'] . '_' . $rs['media_id'] . '.' . $rs['media_mime'];
 			
-			$a .= "<a id='slide-next' style='left: {$adjuster}px; width: {$click_width}px; height: {$bottom_setting}px;' href='#' onclick=\"next(); return false;\">next</a>";
-			
-			//height: ' . $size[1] . 'px; 
-			
-			//$a = "<div id='slideshow' style='position: relative; height: " . $size[1] . "px;'>\n";
-			$a .= '<div id="slide' . $_POST['z'] . '" class="picture" style="z-index: ' . $_POST['z'] . '; position: absolute; display: none;"><img src="' . $OBJ->baseurl . '/files/gimgs/' . $rs['id'] . '_' . $rs['media_file'] . '" width="' . $size[0] . '" height="' . $size[1] . '" />';
-		
-			//$a = "<div id='slideshow'>\n";
-			//$a .= "<div class='picture'><a href='#' onclick=\"next(); return false;\" alt=''><img src='" . $OBJ->baseurl . '/files/gimgs/' . $rs['id'] . '_' . $rs['media_file'] . "' width='$size[0]' height='$size[1]' /></a></div>\n";
-			
-			
-			if (($rs['media_title'] != '') && ($rs['media_caption'] != ''))
+			if (!file_exists(DIRNAME . '/files/dimgs/' . $name))
 			{
-				$a .= "<div class='captioning'>\n";
-				if ($rs['media_title'] != '') $a .= "<div class='title'>$rs[media_title]</div>\n";
-				if ($rs['media_caption'] != '') $a .= "<div class='caption'>$rs[media_caption]</div>\n";
-				$a .= "</div>\n";
+				$R = load_class('resize', true, 'lib');
+			
+				// we're going to resize and output
+				$R->reformat($new_width, $new_height, $size, $rs, $rs['id'], $name, $rs['media_dir']);
 			}
 			
+			//<img src='" . BASEURL . "/files/dimgs/$name' width='$new_width' height='$new_height' alt='' class='lazyload' />
+			$a .= '<img src="' . $OBJ->baseurl . '/files/dimgs/' . $name . '" width="' . $new_width . '" height="' . $height . '" />';
+			
+			$a .= "</a>";
+			
+			if (($rs['media_title'] == '') && ($rs['media_caption'] == ''))
+			{
+				// do nothing
+			}
+			else
+			{
+				$a .= "<div class='captioning'>\n";
+
+				$a .= (($rs['media_title'] !=  '') && ($rs['media_caption'] !=  '')) ? "<p>" : '';
+				$a .= ($rs['media_title'] !=  '') ? $rs['media_title'] : '';
+				$a .= ($rs['media_title'] !=  '') ? " " : '';
+				$a .= ($rs['media_caption'] !=  '') ? strip_tags($rs['media_caption'], "a,i,b") : '';
+				$a .= (($rs['media_title'] !=  '') && ($rs['media_caption'] !=  '')) ? "</p>" : '';
+
+				$a .= "</div>\n";
+			}		
 		
 			$a .= "</div>\n";
-		
-			//return $a;
 			
 			$this->output['mime'] 	= $rs['media_mime'];
 			$this->output['height'] = $size[1];
 			$this->output['output'] = $a;
 			return;
 		}
-	
-		//return $output;
+		else // it's text only
+		{
+			$OBJ->vars->exhibit['id'] = $rs['id'];
+			$OBJ->vars->exhibit['object'] = $rs['object'];
+			$OBJ->abstracts->front_abstracts();
+			
+			// how do we get abstracts here?
+			$height = (isset($OBJ->abstracts->abstract['height'])) ? $OBJ->abstracts->abstract['height'] : 575;
+
+			// only if media_mime = txt
+			$a .= '<div  id="slide' . $posted_z . '" class="picture" style="z-index: ' . $posted_z . '; position: absolute; height: ' . $height . 'px;">';
+			
+			// we need to get the text from the file
+			$handle = fopen(DIRNAME . '/files/' . $rs['media_file'], 'r');
+			$text = fread($handle, 1000000);
+			fclose($handle);
+			
+			// new dimensions 
+			$a .= "<div id='slideshow-text'>\n";
+			$a .= $text;
+			$a .= "</div>\n";
+			
+			$a .= "</div>\n";
+			
+			$this->output['mime'] 	= $rs['media_mime'];
+			$this->output['height'] = $height;
+			$this->output['output'] = $a;
+			return;
+		}
+
 		$this->output = '';
 	}
 }

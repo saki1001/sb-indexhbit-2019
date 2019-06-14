@@ -27,7 +27,7 @@ class Index
 	var $counter = 0;
 	var $current;
 
-	function Index()
+	public function __construct()
 	{
 		$OBJ =& get_instance();
 		global $default;
@@ -176,7 +176,7 @@ class Index
 
 		//$password = ($this->exhibit['pwd'] == true) ? " password" : '';
 		//$active = ($OBJ->vars->exhibit['id'] == $this->exhibit['id']) ? " active$password" : $password;
-		$new = ($this->exhibit['new'] == 1) ? "&nbsp;<sup>new</sup>": '';
+		$new = ($this->exhibit['new'] == 1) ? "&nbsp;<sup class='new_exhibit'></sup>": '';
 		
 		$class = ($this->li_class == '') ? 'exhibit_title' : $this->li_class;
 
@@ -199,7 +199,7 @@ class Index
 	}
 	
 	
-	function ndxz_index_all_tags()
+	function ndxz_index_tags()
 	{
 		$OBJ =& get_instance();
 
@@ -388,7 +388,7 @@ class Index
 
 				$s .= "<li><span id='subsection_title_" . $this->section['secid'] . "_$i' class='subsection_title{$active_subsection_title}'>" . str_replace('_', ' ', $key) . "</span>\n";
 				
-				$active_subsection = ($flag == true) ? " class='active_subsection'" : '';
+				$active_subsection = ($flag == true) ? ' active_subsection' : '';
 				$flag = false; // reset the flag for next time
 			
 				$s .= "<ul class='subsection{$active_subsection}'>\n" . $li . "</ul>\n";
@@ -404,7 +404,7 @@ class Index
 		$s .= "</ul>\n";
 		
 		// last check ???
-		//if (($this->section['status'] != 1) && (empty($new))) return;
+		if (($this->section['status'] != 1) && (empty($new))) return;
 		
 		return $s;	
 	}
@@ -531,7 +531,7 @@ class Index
 				
 					if ($sub['hidden'] != 1)  $s .= ($sub['status'] == 1) ? "<li><span id='subsection_title_" . $this->section['secid'] . "_$i' class='subsection_title'><a href='" . $OBJ->baseurl . ndxz_rewriter($sub['url']) . "'>" . $sub['title'] . "</a></span>\n" : "<li><span id='subsection_title_" . $this->section['secid'] . "_$i' class='subsection_title'>" . $sub['title'] . "</span>\n";
 				
-					$active_subsection = ($flag == true) ? " class='active_subsection'" : '';
+					$active_subsection = ($flag == true) ? ' active_subsection' : '';
 					$flag = false; // reset the flag for next time
 			
 					if ($li != '') $s .= "<ul class='subsection{$active_subsection}'>\n" . $li . "</ul>\n";

@@ -10,23 +10,25 @@ class Jxs_ndxzbox
 	var $y;
 	var $description;
 
-	function __construct()
+	public function __construct()
 	{
 		$OBJ =& get_instance();
 		global $default;
 		
 		$this->height = (int) $_POST['height'];
 
+		$media_id = (isset($_POST['i'])) ? (int) $_POST['i'] : 0;
+
 		$this->rs = $OBJ->db->fetchRecord("SELECT * FROM ".PX."objects, ".PX."media 
-			WHERE media_id = '$_POST[i]' 
+			WHERE media_id = '$media_id' 
 			AND media_ref_id = id");
 			
-		sleep(1);
+		//sleep(1);
 
 		$this->centered();
 	}
 	
-	function output()
+	public function output()
 	{
 		$x['output'] = $this->html;
 		$x['width'] = $this->x;
@@ -36,7 +38,7 @@ class Jxs_ndxzbox
 		exit;
 	}
 	
-	function centered()
+	public function centered()
 	{
 		$OBJ =& get_instance();
 		global $default;
@@ -66,8 +68,8 @@ class Jxs_ndxzbox
 			
 			$a = "<div id='o" . $this->rs['media_id'] . "' class='dialog-content' style='display: none; z-index: 12;'>\n";
 			
-			$a .= "<a href='#' class='link next' id='a$this->rs[media_id]' $next_style onclick=\"next(); return false;\"><!-- --></a>";
-			$a .= "<a href='#' class='link previous' id='a$this->rs[media_id]' $prev_style onclick=\"previous(); return false;\"></a>";
+			$a .= "<a href='#' class='link next' id='a" . $this->rs['media_id'] . "' $next_style onclick=\"next(); return false;\"><!-- --></a>";
+			$a .= "<a href='#' class='link previous' id='a" . $this->rs['media_id'] . "' $prev_style onclick=\"previous(); return false;\"></a>";
 			
 			$a .= "<div id='innerd' style='text-align: center; margin: 0; position: relative;'>";
 			
@@ -90,8 +92,8 @@ class Jxs_ndxzbox
 			$a .= "<div>\n";
 			
 			// information
-			$d = ($this->rs['media_title'] != '') ? "<div>" . $this->rs['media_title'] . "</div>\n" : "";
-			if ($this->rs['media_title'] != '') $d .= "<div style='width: 250px;'><a href='#' onclick=\"$('#toggle').toggle();\" style='display: block;'>[+]</a><div id='toggle' style='display: none; background: black; padding: 3px 6px 6px 0;'>" . $this->rs['media_caption'] . "\n";
+			$d = ($this->rs['media_title'] != '') ? "<div id='dialog-title'>" . $this->rs['media_title'] . "</div>\n" : "";
+			//if ($this->rs['media_caption'] != '') $d .= "<div style='width: 250px;'><div id='toggle' style='background: black; padding: 3px 6px 6px 0;'>" . $this->rs['media_caption'] . "\n";
 			$d .= "</div></div>\n";
 			
 			$this->description = "<div style='padding: 27px 0 0 27px;'>" . $d . "</div>";
@@ -114,8 +116,8 @@ class Jxs_ndxzbox
 			
 			$a = "<div id='o" . $this->rs['media_id'] . "' class='dialog-content' style='display: none; z-index: 12;'>\n";
 			
-			$a .= "<a href='#' class='link next' id='a$this->rs[media_id]' $next_style onclick=\"next(); return false;\"><!-- --></a>";
-			$a .= "<a href='#' class='link previous' id='a$this->rs[media_id]' $prev_style onclick=\"previous(); return false;\"></a>";
+			$a .= "<a href='#' class='link next' id='a" . $this->rs['media_id'] . "' $next_style onclick=\"next(); return false;\"><!-- --></a>";
+			$a .= "<a href='#' class='link previous' id='a" . $this->rs['media_id'] . "' $prev_style onclick=\"previous(); return false;\"></a>";
 			
 			$a .= "<div id='innerd' style='text-align: center; margin: 0; position: relative;'>";
 			
@@ -129,7 +131,7 @@ class Jxs_ndxzbox
 			
 			// information
 			$d = ($this->rs['media_title'] != '') ? "<div id='dialog-title'>" . $this->rs['media_title'] . "</div>\n" : "";
-			if ($this->rs['media_title'] != '') $d .= "<div id='dialog-box-text'><a href='#' onclick=\"$('#dialog-toggle').toggle();\" style='display: block;'>[+]</a><div id='dialog-toggle'>" . $this->rs['media_caption'] . "\n";
+			if ($this->rs['media_caption'] != '') $d .= "<div id='dialog-box-text'><div id='dialog-toggle'>" . $this->rs['media_caption'] . "\n";
 			$d .= "</div></div>\n";
 			
 			$this->description = "<div style='padding: 27px 0 0 27px;'>" . $d . "</div>";

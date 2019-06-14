@@ -21,6 +21,11 @@ End
 
 class input_vimeo
 {
+	public function __construct()
+	{
+		
+	}
+	
 	function input_link()
 	{
 		$OBJ =& get_instance();
